@@ -1,13 +1,16 @@
 import sys
+import os
 import json
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,QLabel, QPushButton, QLineEdit, QComboBox, QSpinBox, QFrame,QMessageBox, QColorDialog, QFileDialog)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 
 ARCHIVO_CONFIG = "config.json"
+ARCHIVO_BACKUP = "config.bak"
+ARCHIVO_TEMPORAL = "config.tmp"
 
 VALORES_PREDETERMINADOS = {
-    "nombre_usuario": "PRUEBA",
+    "nombre_usuario": "Mayk",
     "tema_interfaz": "Claro",
     "idioma": "es",
     "tamaño_fuente": 14,
@@ -23,11 +26,35 @@ def cargar_configuracion_archivo():
             return json.load(archivo)
     except FileNotFoundError:
         return VALORES_PREDETERMINADOS.copy()
+    except json.JSONDecodeError:
+        QMessageBox.warning(
+            None,
+            "Configuración corrupta",
+            "El archivo de configuración tiene un formato inválido. Se cargarán los valores predeterminados."
+        )
+        return VALORES_PREDETERMINADOS.copy()
+    except PermissionError:
+        QMessageBox.warning(
+            None,
+            "Sin permisos",
+            "No se tienen permisos para leer el archivo de configuración. Se cargarán los valores predeterminados."
+        )
+        return VALORES_PREDETERMINADOS.copy()
+
+
+def crear_backup():
+    if os.path.exists(ARCHIVO_CONFIG):
+        with open(ARCHIVO_CONFIG, "r", encoding="utf-8") as original:
+            contenido = original.read()
+        with open(ARCHIVO_BACKUP, "w", encoding="utf-8") as respaldo:
+            respaldo.write(contenido)
 
 
 def guardar_configuracion_archivo(configuracion):
-    with open(ARCHIVO_CONFIG, "w", encoding="utf-8") as archivo:
+    crear_backup()
+    with open(ARCHIVO_TEMPORAL, "w", encoding="utf-8") as archivo:
         json.dump(configuracion, archivo, ensure_ascii=False, indent=4)
+    os.replace(ARCHIVO_TEMPORAL, ARCHIVO_CONFIG)
 
 
 QSS_CLARO = """
@@ -248,7 +275,7 @@ QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
 class VentanaPrincipal(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("DROPPED")
+        self.setWindowTitle("Mi Aplicación")
         self.resize(980, 620)
 
         self.config_actual = cargar_configuracion_archivo()
@@ -281,7 +308,7 @@ class VentanaPrincipal(QMainWindow):
         layout.setSpacing(14)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        titulo_app = QLabel("DROPPED")
+        titulo_app = QLabel("Mi Aplicación")
         titulo_app.setObjectName("tituloApp")
         self.titulo_app = titulo_app
         layout.addWidget(titulo_app)
@@ -316,7 +343,7 @@ class VentanaPrincipal(QMainWindow):
         self.boton_ver.clicked.connect(self.accion_simulada)
         layout.addWidget(self.boton_ver)
 
-        self.boton_settings = QPushButton("Settings")
+        self.boton_settings = QPushButton("⚙  Settings")
         self.boton_settings.setObjectName("botonNav")
         self.boton_settings.setProperty("activo", "true")
         layout.addWidget(self.boton_settings)
@@ -454,9 +481,16 @@ class VentanaPrincipal(QMainWindow):
         if hasattr(self, "foto_pendiente"):
             self.config_actual["foto_perfil"] = self.foto_pendiente
 
-        guardar_configuracion_archivo(self.config_actual)
-        self.aplicar_configuracion(self.config_actual)
-        QMessageBox.information(self, "Aviso", "Configuración guardada correctamente.")
+        try:
+            guardar_configuracion_archivo(self.config_actual)
+            self.aplicar_configuracion(self.config_actual)
+            QMessageBox.information(self, "Aviso", "Configuración guardada correctamente.")
+        except PermissionError:
+            QMessageBox.critical(
+                self,
+                "Error al guardar",
+                "No se tienen permisos para guardar la configuración. Los cambios no se guardaron en disco."
+            )
 
     def cancelar_configuracion(self):
         for atributo in ("color_barra_pendiente", "color_letra_pendiente", "foto_pendiente"):
