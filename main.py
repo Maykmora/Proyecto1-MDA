@@ -275,7 +275,7 @@ QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
 class VentanaPrincipal(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Mi Aplicación")
+        self.setWindowTitle("DROPPED")
         self.resize(980, 620)
 
         self.config_actual = cargar_configuracion_archivo()
@@ -308,7 +308,7 @@ class VentanaPrincipal(QMainWindow):
         layout.setSpacing(14)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        titulo_app = QLabel("Mi Aplicación")
+        titulo_app = QLabel("DROPPED")
         titulo_app.setObjectName("tituloApp")
         self.titulo_app = titulo_app
         layout.addWidget(titulo_app)
@@ -343,7 +343,7 @@ class VentanaPrincipal(QMainWindow):
         self.boton_ver.clicked.connect(self.accion_simulada)
         layout.addWidget(self.boton_ver)
 
-        self.boton_settings = QPushButton("⚙  Settings")
+        self.boton_settings = QPushButton("Settings")
         self.boton_settings.setObjectName("botonNav")
         self.boton_settings.setProperty("activo", "true")
         layout.addWidget(self.boton_settings)
