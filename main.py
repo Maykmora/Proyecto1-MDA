@@ -2,7 +2,7 @@ import sys
 import os
 import json
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,QLabel, QPushButton, QLineEdit, QComboBox, QSpinBox, QFrame,QMessageBox, QColorDialog, QFileDialog)
-from PyQt6.QtGui import QPixmap, QFont
+from PyQt6.QtGui import QPixmap, QFont, QColor
 from PyQt6.QtCore import Qt
 
 ARCHIVO_CONFIG = "config.json"
@@ -10,7 +10,7 @@ ARCHIVO_BACKUP = "config.bak"
 ARCHIVO_TEMPORAL = "config.tmp"
 
 VALORES_PREDETERMINADOS = {
-    "nombre_usuario": "Mayk",
+    "nombre_usuario": "Prueba",
     "tema_interfaz": "Claro",
     "idioma": "es",
     "tamaño_fuente": 14,
@@ -23,7 +23,10 @@ VALORES_PREDETERMINADOS = {
 def cargar_configuracion_archivo():
     try:
         with open(ARCHIVO_CONFIG, "r", encoding="utf-8") as archivo:
-            return json.load(archivo)
+            configuracion_leida = json.load(archivo)
+        configuracion = VALORES_PREDETERMINADOS.copy()
+        configuracion.update(configuracion_leida)
+        return configuracion
     except FileNotFoundError:
         return VALORES_PREDETERMINADOS.copy()
     except json.JSONDecodeError:
@@ -451,13 +454,15 @@ class VentanaPrincipal(QMainWindow):
         return layout
 
     def elegir_color_barra(self):
-        color = QColorDialog.getColor()
+        color_inicial = QColor(self.config_actual["color_barra_menu"])
+        color = QColorDialog.getColor(color_inicial, self)
         if color.isValid():
             self.color_barra_pendiente = color.name()
             self.boton_color_barra.setStyleSheet(f"background-color: {self.color_barra_pendiente};")
 
     def elegir_color_letra(self):
-        color = QColorDialog.getColor()
+        color_inicial = QColor(self.config_actual["color_letra"])
+        color = QColorDialog.getColor(color_inicial, self)
         if color.isValid():
             self.color_letra_pendiente = color.name()
             self.boton_color_letra.setStyleSheet(f"background-color: {self.color_letra_pendiente};")
