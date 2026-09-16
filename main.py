@@ -1,7 +1,11 @@
 import sys
 import os
 import json
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,QLabel, QPushButton, QLineEdit, QComboBox, QSpinBox, QFrame,QMessageBox, QColorDialog, QFileDialog)
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
+    QLabel, QPushButton, QLineEdit, QComboBox, QSpinBox, QFrame,
+    QMessageBox, QColorDialog, QFileDialog
+)
 from PyQt6.QtGui import QPixmap, QFont, QColor
 from PyQt6.QtCore import Qt
 
@@ -10,14 +14,54 @@ ARCHIVO_BACKUP = "config.bak"
 ARCHIVO_TEMPORAL = "config.tmp"
 
 VALORES_PREDETERMINADOS = {
-    "nombre_usuario": "Prueba",
+    "nombre_usuario": "Mayk",
     "tema_interfaz": "Claro",
-    "idioma": "es",
+    "idioma": "es-ES",
     "tamaño_fuente": 14,
     "color_barra_menu": "#1f2430",
     "color_letra": "#ffffff",
     "foto_perfil": None,
 }
+
+TEXTOS = {
+    "es-ES": {
+        "titulo_app": "DROPPED",
+        "titulo_config": "Configuración",
+        "etiqueta_nombre": "Nombre de usuario",
+        "etiqueta_tema": "Tema",
+        "etiqueta_idioma": "Idioma",
+        "etiqueta_fuente": "Tamaño de fuente",
+        "etiqueta_color_barra": "Color de barra",
+        "etiqueta_color_letra": "Color de letra",
+        "boton_foto": "Cambiar foto de perfil",
+        "boton_cancelar": "Cancelar",
+        "boton_guardar": "Guardar cambios",
+        "titulo_aviso": "Aviso",
+        "titulo_error": "Error al guardar",
+        "aviso_guardado": "Configuración guardada correctamente.",
+        "aviso_simulada": "Esta opción es simulada y no tiene funcionalidad real.",
+        "aviso_sin_permisos_guardar": "No se tienen permisos para guardar la configuración. Los cambios no se guardaron en disco.",
+    },
+    "en-US": {
+        "titulo_app": "DROPPED",
+        "titulo_config": "Settings",
+        "etiqueta_nombre": "Username",
+        "etiqueta_tema": "Theme",
+        "etiqueta_idioma": "Language",
+        "etiqueta_fuente": "Font size",
+        "etiqueta_color_barra": "Bar color",
+        "etiqueta_color_letra": "Text color",
+        "boton_foto": "Change profile photo",
+        "boton_cancelar": "Cancel",
+        "boton_guardar": "Save changes",
+        "titulo_aviso": "Notice",
+        "titulo_error": "Save error",
+        "aviso_guardado": "Configuration saved successfully.",
+        "aviso_simulada": "This option is simulated and has no real functionality.",
+        "aviso_sin_permisos_guardar": "You don't have permission to save the configuration. Changes were not saved to disk.",
+    },
+}
+
 
 
 def cargar_configuracion_archivo():
@@ -286,8 +330,12 @@ class VentanaPrincipal(QMainWindow):
         self.construir_interfaz()
         self.aplicar_configuracion(self.config_actual)
 
+    def texto(self, clave):
+        textos = TEXTOS.get(self.config_actual["idioma"], TEXTOS["es-ES"])
+        return textos[clave]
+
     def accion_simulada(self):
-        QMessageBox.information(self, "Aviso", "Esta opción es simulada y no tiene funcionalidad real.")
+        QMessageBox.information(self, self.texto("titulo_aviso"), self.texto("aviso_simulada"))
 
     def construir_interfaz(self):
         contenedor_central = QWidget()
@@ -366,24 +414,24 @@ class VentanaPrincipal(QMainWindow):
         layout_tarjeta.setContentsMargins(30, 25, 30, 25)
         layout_tarjeta.setSpacing(14)
 
-        titulo = QLabel("Configuración")
-        titulo.setObjectName("tituloConfig")
-        layout_tarjeta.addWidget(titulo)
+        self.titulo_config = QLabel("Configuración")
+        self.titulo_config.setObjectName("tituloConfig")
+        layout_tarjeta.addWidget(self.titulo_config)
 
         self.campo_nombre_usuario = QLineEdit()
-        layout_tarjeta.addWidget(self.crear_campo("Nombre de usuario", self.campo_nombre_usuario))
+        layout_tarjeta.addWidget(self.crear_campo("etiqueta_nombre", "Nombre de usuario", self.campo_nombre_usuario))
 
         self.combo_tema = QComboBox()
         self.combo_tema.addItems(["Claro", "Oscuro"])
-        layout_tarjeta.addWidget(self.crear_campo("Tema", self.combo_tema))
+        layout_tarjeta.addWidget(self.crear_campo("etiqueta_tema", "Tema", self.combo_tema))
 
         self.combo_idioma = QComboBox()
-        self.combo_idioma.addItems(["es", "es-ES", "en", "en-US"])
-        layout_tarjeta.addWidget(self.crear_campo("Idioma", self.combo_idioma))
+        self.combo_idioma.addItems(["es-ES", "en-US"])
+        layout_tarjeta.addWidget(self.crear_campo("etiqueta_idioma", "Idioma", self.combo_idioma))
 
         self.spin_fuente = QSpinBox()
         self.spin_fuente.setRange(8, 32)
-        layout_tarjeta.addWidget(self.crear_campo("Tamaño de fuente", self.spin_fuente))
+        layout_tarjeta.addWidget(self.crear_campo("etiqueta_fuente", "Tamaño de fuente", self.spin_fuente))
 
         fila_colores = QHBoxLayout()
         fila_colores.setSpacing(20)
@@ -391,34 +439,34 @@ class VentanaPrincipal(QMainWindow):
         self.boton_color_barra = QPushButton()
         self.boton_color_barra.setObjectName("botonColor")
         self.boton_color_barra.clicked.connect(self.elegir_color_barra)
-        fila_colores.addLayout(self.crear_campo_color("Color de barra", self.boton_color_barra))
+        fila_colores.addLayout(self.crear_campo_color("etiqueta_color_barra", "Color de barra", self.boton_color_barra))
 
         self.boton_color_letra = QPushButton()
         self.boton_color_letra.setObjectName("botonColor")
         self.boton_color_letra.clicked.connect(self.elegir_color_letra)
-        fila_colores.addLayout(self.crear_campo_color("Color de letra", self.boton_color_letra))
+        fila_colores.addLayout(self.crear_campo_color("etiqueta_color_letra", "Color de letra", self.boton_color_letra))
 
         layout_tarjeta.addLayout(fila_colores)
 
-        boton_foto = QPushButton("Cambiar foto de perfil")
-        boton_foto.setObjectName("botonCancelar")
-        boton_foto.clicked.connect(self.elegir_foto)
-        layout_tarjeta.addWidget(boton_foto, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.boton_foto = QPushButton("Cambiar foto de perfil")
+        self.boton_foto.setObjectName("botonCancelar")
+        self.boton_foto.clicked.connect(self.elegir_foto)
+        layout_tarjeta.addWidget(self.boton_foto, alignment=Qt.AlignmentFlag.AlignLeft)
 
         layout_tarjeta.addSpacing(10)
 
         fila_botones = QHBoxLayout()
         fila_botones.addStretch()
 
-        boton_cancelar = QPushButton("Cancelar")
-        boton_cancelar.setObjectName("botonCancelar")
-        boton_cancelar.clicked.connect(self.cancelar_configuracion)
-        fila_botones.addWidget(boton_cancelar)
+        self.boton_cancelar = QPushButton("Cancelar")
+        self.boton_cancelar.setObjectName("botonCancelar")
+        self.boton_cancelar.clicked.connect(self.cancelar_configuracion)
+        fila_botones.addWidget(self.boton_cancelar)
 
-        boton_guardar = QPushButton("Guardar cambios")
-        boton_guardar.setObjectName("botonGuardar")
-        boton_guardar.clicked.connect(self.guardar_configuracion)
-        fila_botones.addWidget(boton_guardar)
+        self.boton_guardar = QPushButton("Guardar cambios")
+        self.boton_guardar.setObjectName("botonGuardar")
+        self.boton_guardar.clicked.connect(self.guardar_configuracion)
+        fila_botones.addWidget(self.boton_guardar)
 
         layout_tarjeta.addLayout(fila_botones)
 
@@ -427,7 +475,7 @@ class VentanaPrincipal(QMainWindow):
 
         return contenedor
 
-    def crear_campo(self, etiqueta_texto, widget_control):
+    def crear_campo(self, nombre_atributo, etiqueta_texto, widget_control):
         contenedor = QWidget()
         layout = QVBoxLayout(contenedor)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -435,18 +483,20 @@ class VentanaPrincipal(QMainWindow):
 
         etiqueta = QLabel(etiqueta_texto)
         etiqueta.setProperty("etiquetaCampo", "true")
+        setattr(self, nombre_atributo, etiqueta)
 
         layout.addWidget(etiqueta)
         layout.addWidget(widget_control)
 
         return contenedor
 
-    def crear_campo_color(self, etiqueta_texto, boton_color):
+    def crear_campo_color(self, nombre_atributo, etiqueta_texto, boton_color):
         layout = QVBoxLayout()
         layout.setSpacing(4)
 
         etiqueta = QLabel(etiqueta_texto)
         etiqueta.setProperty("etiquetaCampo", "true")
+        setattr(self, nombre_atributo, etiqueta)
 
         layout.addWidget(etiqueta)
         layout.addWidget(boton_color)
@@ -489,12 +539,12 @@ class VentanaPrincipal(QMainWindow):
         try:
             guardar_configuracion_archivo(self.config_actual)
             self.aplicar_configuracion(self.config_actual)
-            QMessageBox.information(self, "Aviso", "Configuración guardada correctamente.")
+            QMessageBox.information(self, self.texto("titulo_aviso"), self.texto("aviso_guardado"))
         except PermissionError:
             QMessageBox.critical(
                 self,
-                "Error al guardar",
-                "No se tienen permisos para guardar la configuración. Los cambios no se guardaron en disco."
+                self.texto("titulo_error"),
+                self.texto("aviso_sin_permisos_guardar")
             )
 
     def cancelar_configuracion(self):
@@ -549,6 +599,24 @@ class VentanaPrincipal(QMainWindow):
                 "padding: 10px 16px; border-radius: 8px; "
                 "background-color: transparent;"
             )
+
+        self.actualizar_textos(configuracion["idioma"])
+
+    def actualizar_textos(self, idioma):
+        textos = TEXTOS.get(idioma, TEXTOS["es-ES"])
+
+        self.setWindowTitle(textos["titulo_app"])
+        self.titulo_app.setText(textos["titulo_app"])
+        self.titulo_config.setText(textos["titulo_config"])
+        self.etiqueta_nombre.setText(textos["etiqueta_nombre"])
+        self.etiqueta_tema.setText(textos["etiqueta_tema"])
+        self.etiqueta_idioma.setText(textos["etiqueta_idioma"])
+        self.etiqueta_fuente.setText(textos["etiqueta_fuente"])
+        self.etiqueta_color_barra.setText(textos["etiqueta_color_barra"])
+        self.etiqueta_color_letra.setText(textos["etiqueta_color_letra"])
+        self.boton_foto.setText(textos["boton_foto"])
+        self.boton_cancelar.setText(textos["boton_cancelar"])
+        self.boton_guardar.setText(textos["boton_guardar"])
 
 
 if __name__ == "__main__":
